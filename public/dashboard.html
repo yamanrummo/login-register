@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --danger-bg: #fef2f2;
+            --danger-text: #dc2626;
+            --admin-bg: #f5f3ff;
+            --admin-text: #7c3aed;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .dashboard-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 650px; /* Butonlar sığsın diye hafif genişlettik */
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+            box-sizing: border-box;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            color: var(--text-light);
+            font-size: 15px;
+            margin-bottom: 25px;
+        }
+
+        .welcome-badge {
+            display: inline-block;
+            background: #e0e7ff;
+            color: var(--primary);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .role-badge.admin {
+            background: var(--admin-bg);
+            color: var(--admin-text);
+            border: 1px solid #ddd6fe;
+        }
+
+        .admin-section {
+            display: none;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .admin-section h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .user-list {
+            max-height: 250px;
+            overflow-y: auto;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .user-item {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-email {
+            color: var(--text-light);
+            font-size: 12px;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Yeni Buton Stilleri */
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn-outline {
+            border-color: #cbd5e1;
+            background: #ffffff;
+            color: #475569;
+        }
+        
+        .btn-outline:hover:not(:disabled) {
+            background: #f1f5f9;
+        }
+
+        .btn-danger {
+            border-color: #fecaca;
+            background: #ffffff;
+            color: var(--danger-text);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: var(--danger-bg);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #f8fafc;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .logout-btn:hover {
+            background: #fee2e2;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-card">
+        <div id="badgeContainer">
+            <span class="welcome-badge" id="roleBadge">User Portal</span>
+        </div>
+        <h1>Welcome, <span id="usernameDisplay">User</span>!</h1>
+        <p>You have successfully logged into your account dashboard.</p>
+        
+        <!-- SADECE ADMINLERE GÖZÜKECEK ÖZEL ALAN -->
+        <div id="adminPanel" class="admin-section">
+            <h3>Admin Panel - Registered Users</h3>
+            <div id="userListContainer" class="user-list">
+                Loading users...
+            </div>
+        </div>
+
+        <button class="logout-btn" onclick="logout()">Sign Out</button>
+    </div>
+
+    <script>
+        const username = localStorage.getItem('username') || 'User';
+        const role = localStorage.getItem('role') || 'user';
+
+        document.getElementById('usernameDisplay').textContent = username;
+
+        if (role === 'admin') {
+            const badge = document.getElementById('roleBadge');
+            badge.textContent = 'Admin Portal';
+            badge.className = 'welcome-badge role-badge admin';
+            
+            document.getElementById('adminPanel').style.display = 'block';
+            fetchAdminUsers();
+        }
+
+        async function fetchAdminUsers() {
+            const currentToken = localStorage.getItem('token');
+            if (!currentToken) {
+                logout();
+                return;
+            }
+
+            try {
+                const res = await fetch('/admin/users', {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const users = await res.json();
+                
+                const container = document.getElementById('userListContainer');
+                if (res.ok) {
+                    if (users.length === 0) {
+                        container.innerHTML = '<div style="color: #64748b; text-align: center;">No users found.</div>';
+                        return;
+                    }
+                    
+                    const currentUser = localStorage.getItem('username');
+
+                    container.innerHTML = users.map(u => {
+                        const isMe = u.name === currentUser;
+                        return `
+                        <div class="user-item">
+                            <div class="user-info">
+                                <span class="user-name">${u.name} <span style="color: ${u.role === 'admin' ? '#7c3aed' : '#64748b'}; font-size: 11px;">[${u.role}]</span></span>
+                                <span class="user-email">${u.email}</span>
+                            </div>
+                            <div class="action-group">
+                                <button class="action-btn btn-outline" 
+                                    onclick="toggleRole('${u._id}', '${u.role}')" 
+                                    ${isMe ? 'disabled title="You cannot change your own role"' : ''}>
+                                    ${u.role === 'admin' ? 'Demote' : 'Make Admin'}
+                                </button>
+                                <button class="action-btn btn-danger" 
+                                    onclick="deleteUser('${u._id}')" 
+                                    ${isMe ? 'disabled title="You cannot delete yourself"' : ''}>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    `}).join('');
+                } else if (res.status === 401 || res.status === 403) {
+                    logout();
+                } else {
+                    container.innerHTML = `<div style="color: #dc2626;">${users.message || 'Error loading users.'}</div>`;
+                }
+            } catch (err) {
+                document.getElementById('userListContainer').innerHTML = '<div style="color: #dc2626;">Failed to load users.</div>';
+            }
+        }
+
+        async function toggleRole(userId, currentRole) {
+            const token = localStorage.getItem('token');
+            const newRole = currentRole === 'admin' ? 'user' : 'admin';
+            
+            try {
+                const res = await fetch(`/users/${userId}/role`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ role: newRole })
+                });
+                
+                if (res.ok) fetchAdminUsers(); 
+                else alert((await res.json()).message || 'Failed to update role');
+            } catch (err) {
+                alert('An error occurred connecting to the server.');
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('Are you sure you want to completely delete this user?')) return;
+            
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (res.ok) fetchAdminUsers(); 
+                else alert((await res.json()).message || 'Failed to delete user');
+            } catch (err) {
+                alert('An error occurred connecting to the server.');
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/index.html';
+        }
+    </script>
+</body>
+</html>
