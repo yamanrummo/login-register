@@ -117,7 +117,9 @@
             color: var(--text);
         }
 
-        input {
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
             width: 100%;
             padding: 14px 16px;
             border: 1.5px solid var(--border);
@@ -165,25 +167,6 @@
             transform: translateY(0);
         }
 
-        .forgot-pass {
-            text-align: right;
-            margin-bottom: 20px;
-            margin-top: -8px;
-        }
-
-        .forgot-pass a {
-            font-size: 13px;
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .forgot-pass a:hover {
-            color: var(--primary-hover);
-            text-decoration: underline;
-        }
-
         .alert {
             padding: 12px 16px;
             border-radius: 10px;
@@ -218,9 +201,16 @@
                     <label>Password</label>
                     <input type="password" id="logPassword" placeholder="••••••••" required>
                 </div>
-                <div class="forgot-pass">
-                    <a href="/forgot-password.html">Forgot Password?</a>
+                
+                <!-- YENİ EKLENEN: Remember Me ve Forgot Password Yan Yana -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: -5px; margin-bottom: 20px;">
+                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-light); font-weight: 500; cursor: pointer; margin-bottom: 0;">
+                        <input type="checkbox" id="rememberMe" style="width: 16px; height: 16px; accent-color: #6366f1; border-radius: 4px; padding: 0; margin: 0; cursor: pointer;">
+                        Remember me
+                    </label>
+                    <a href="/forgot-password.html" style="font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 500; transition: 0.2s;">Forgot Password?</a>
                 </div>
+
                 <button type="submit" class="submit-btn">Sign In</button>
             </form>
         </div>
@@ -251,6 +241,12 @@
     </div>
 
     <script>
+        // OTOMATİK YÖNLENDİRME KODU (Doğru yere, <script> etiketinin tam içine alındı)
+        const existingToken = localStorage.getItem('token');
+        if (existingToken) {
+            window.location.href = '/dashboard.html';
+        }
+
         function switchTab(tab) {
             const loginSec = document.getElementById('loginSection');
             const regSec = document.getElementById('registerSection');
@@ -269,70 +265,74 @@
             }
         }
 
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('regName').value;
-    const email = document.getElementById('regEmail').value;
-    const password = document.getElementById('regPassword').value;
-    
-    const alertBox = document.getElementById('registerAlert');
+        // Register Handler
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            
+            const alertBox = document.getElementById('registerAlert');
 
-    try {
-        const res = await fetch('/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password })
-        });
-        const data = await res.json();
-        
-        if (alertBox) {
-            alertBox.style.display = 'block';
-            alertBox.style.padding = '10px';
-            alertBox.style.borderRadius = '8px';
-            alertBox.style.marginBottom = '15px';
-            if (res.ok) {
-                alertBox.style.color = '#16a34a';
-                alertBox.style.backgroundColor = '#f0fdf4';
-                alertBox.textContent = "Registration successful! You can now log in.";
-            } else {
-                alertBox.style.color = '#dc2626';
-                alertBox.style.backgroundColor = '#fef2f2';
-                alertBox.textContent = data.message;
+            try {
+                const res = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+                
+                if (alertBox) {
+                    alertBox.style.display = 'block';
+                    alertBox.style.padding = '10px';
+                    alertBox.style.borderRadius = '8px';
+                    alertBox.style.marginBottom = '15px';
+                    if (res.ok) {
+                        alertBox.style.color = '#16a34a';
+                        alertBox.style.backgroundColor = '#f0fdf4';
+                        alertBox.textContent = "Registration successful! You can now log in.";
+                    } else {
+                        alertBox.style.color = '#dc2626';
+                        alertBox.style.backgroundColor = '#fef2f2';
+                        alertBox.textContent = data.message;
+                    }
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                if (alertBox) {
+                    alertBox.style.display = 'block';
+                    alertBox.style.color = '#dc2626';
+                    alertBox.style.backgroundColor = '#fef2f2';
+                    alertBox.textContent = "An error occurred connecting to the server.";
+                } else {
+                    alert("An error occurred connecting to the server.");
+                }
             }
-        } else {
-            alert(data.message);
-        }
-    } catch (err) {
-        if (alertBox) {
-            alertBox.style.display = 'block';
-            alertBox.style.color = '#dc2626';
-            alertBox.style.backgroundColor = '#fef2f2';
-            alertBox.textContent = "An error occurred connecting to the server.";
-        } else {
-            alert("An error occurred connecting to the server.");
-        }
-    }
-});
+        });
 
-     // Login Handler
+        // Login Handler
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('logName').value;
             const password = document.getElementById('logPassword').value;
+            
+            const rememberMe = document.getElementById('rememberMe').checked; 
+            
             const alertBox = document.getElementById('loginAlert');
 
             try {
                 const res = await fetch('/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, password })
+                    body: JSON.stringify({ name, password, rememberMe })
                 });
                 const data = await res.json();
                 
                 if (res.ok) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('username', name);
-                    localStorage.setItem('role', data.role); // <-- BU SATIRIN OLDUĞUNDAN EMİN OL
+                    localStorage.setItem('role', data.role);
                     window.location.href = '/dashboard.html';
                 } else {
                     alertBox.className = 'alert error';

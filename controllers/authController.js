@@ -43,24 +43,37 @@ exports.register = async (req, res) => {
   }
 };
 
-// Giriş Yap
 exports.login = async (req, res) => {
   try {
-    const { name, password } = req.body;
+    // "email" yerine "name" alıyoruz çünkü frontend Username gönderiyor
+    const { name, password, rememberMe } = req.body;
+
+    // Veritabanında "name" (kullanıcı adı) alanına göre arama yapıyoruz
     const user = await User.findOne({ name });
-    if (!user) return res.status(400).json({ message: "User not found!" });
+    
+    if (!user) return res.status(404).json({ message: 'User not found!' });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Incorrect password!" });
+    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials!' });
+
+    // "Beni Hatırla" seçiliyse 30 gün (30d), değilse 1 saat (1h) geçerli token
+    const tokenExpireTime = rememberMe ? '30d' : '1h';
 
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role }, 
-      JWT_SECRET, 
-      { expiresIn: '1h' }
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: tokenExpireTime }
     );
-    res.json({ message: "Login successful!", token, role: user.role }); 
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    res.json({
+      message: 'Logged in successfully',
+      token,
+      // Frontend dashboard'da role bilgisini kullanabilmesi için role'ü dışarı aktarıyoruz
+      role: user.role, 
+      user: { id: user._id, name: user.name, email: user.email }
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
 
