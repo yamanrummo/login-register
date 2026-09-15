@@ -218,9 +218,11 @@
         <div id="registerSection" class="form-section">
             <h2>Create Account</h2>
             <p class="subtitle">Join us today! Fill in your information.</p>
-            <div id="regAlert" class="alert"></div>
+            
+            <!-- Görsel Uyarı Kutusu -->
+            <div id="registerAlert" class="alert"></div>
+
             <form id="registerForm" novalidate>
-                <div id="registerAlert" style="display: none; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 14px;"></div>
                 <div class="input-group">
                     <label>Username</label>
                     <input type="text" id="regName" placeholder="Choose a username" required>
@@ -264,10 +266,12 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- REGISTER (Doğrudan buton tıklama kontrolü) ---
-            const registerBtn = document.querySelector('#registerSection .submit-btn');
-            if (registerBtn) {
-                registerBtn.addEventListener('click', async (e) => {
+            // --- REGISTER ---
+            const registerForm = document.getElementById('registerForm');
+            const registerAlert = document.getElementById('registerAlert');
+
+            if (registerForm) {
+                registerForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
 
                     const name = document.getElementById('regName').value.trim();
@@ -275,7 +279,8 @@
                     const password = document.getElementById('regPassword').value.trim();
 
                     if (!name || !email || !password) {
-                        alert("Lütfen tüm alanları doldurun!");
+                        registerAlert.className = 'alert error';
+                        registerAlert.textContent = "Lütfen tüm alanları doldurun!";
                         return;
                     }
 
@@ -295,15 +300,27 @@
                         }
 
                         if (res.ok) {
-                            alert("Registration successful! You can now log in.");
-                            document.getElementById('registerForm').reset();
-                            window.location.reload();
+                            // Başarılı mesajını yeşil kutuda göster
+                            registerAlert.className = 'alert success';
+                            registerAlert.textContent = "Registration successful! Redirecting to Sign In...";
+                            
+                            registerForm.reset();
+
+                            // 2 saniye bekletip kullanıcıyı otomatik olarak Sign In sekmesine yönlendir
+                            setTimeout(() => {
+                                switchTab('login');
+                                registerAlert.style.display = 'none'; // Kutuyu gizle
+                            }, 2000);
+
                         } else {
-                            alert(data.message || "Registration failed!");
+                            // Hata mesajını kırmızı kutuda göster
+                            registerAlert.className = 'alert error';
+                            registerAlert.textContent = data.message || "Registration failed!";
                         }
                     } catch (err) {
                         console.error("Bağlantı hatası:", err);
-                        alert("An error occurred connecting to the server.");
+                        registerAlert.className = 'alert error';
+                        registerAlert.textContent = "An error occurred connecting to the server.";
                     }
                 });
             }
