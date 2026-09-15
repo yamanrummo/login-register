@@ -202,7 +202,6 @@
                     <input type="password" id="logPassword" placeholder="••••••••" required>
                 </div>
                 
-                <!-- YENİ EKLENEN: Remember Me ve Forgot Password Yan Yana -->
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: -5px; margin-bottom: 20px;">
                     <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-light); font-weight: 500; cursor: pointer; margin-bottom: 0;">
                         <input type="checkbox" id="rememberMe" style="width: 16px; height: 16px; accent-color: #6366f1; border-radius: 4px; padding: 0; margin: 0; cursor: pointer;">
@@ -214,7 +213,6 @@
                 <button type="submit" class="submit-btn">Sign In</button>
             </form>
         </div>
-
 
         <!-- REGISTER SECTION -->
         <div id="registerSection" class="form-section">
@@ -241,7 +239,6 @@
     </div>
 
     <script>
-        // OTOMATİK YÖNLENDİRME KODU (Doğru yere, <script> etiketinin tam içine alındı)
         const existingToken = localStorage.getItem('token');
         if (existingToken) {
             window.location.href = '/dashboard.html';
@@ -265,68 +262,84 @@
             }
         }
 
-  // Register Handler
-  console.log("JavaScript dosyasi calisiyor!");
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('regName').value;
-    const email = document.getElementById('regEmail').value;
-    const password = document.getElementById('regPassword').value;
-
-    try {
-        const res = await fetch('/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password })
-        });
-        const data = await res.json();
-        
-        if (res.ok) {
-            // Tarayıcının kendi garanti başarı bildirimi
-            alert("Registration successful! You can now log in.");
+        document.addEventListener('DOMContentLoaded', () => {
             
-            // Formu temizle ve sayfayı yenile (Giriş ekranına dön)
-            document.getElementById('registerForm').reset();
-            window.location.reload();
-        } else {
-            // Sunucudan gelen hata mesajı (Örn: Bu mail zaten kayıtlı)
-            alert(data.message || "An error occurred during registration.");
-        }
-    } catch (err) {
-        alert("An error occurred connecting to the server.");
-    }
-});
+            // --- REGISTER (Doğrudan buton tıklama kontrolü) ---
+            const registerBtn = document.querySelector('#registerSection .submit-btn');
+            if (registerBtn) {
+                registerBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
 
-        // Login Handler
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('logName').value;
-            const password = document.getElementById('logPassword').value;
-            
-            const rememberMe = document.getElementById('rememberMe').checked; 
-            
-            const alertBox = document.getElementById('loginAlert');
+                    const name = document.getElementById('regName').value.trim();
+                    const email = document.getElementById('regEmail').value.trim();
+                    const password = document.getElementById('regPassword').value.trim();
 
-            try {
-                const res = await fetch('/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, password, rememberMe })
+                    if (!name || !email || !password) {
+                        alert("Lütfen tüm alanları doldurun!");
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch('/register', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name, email, password })
+                        });
+
+                        const textResponse = await res.text();
+                        let data;
+                        try {
+                            data = JSON.parse(textResponse);
+                        } catch (err) {
+                            data = { message: textResponse };
+                        }
+
+                        if (res.ok) {
+                            alert("Registration successful! You can now log in.");
+                            document.getElementById('registerForm').reset();
+                            window.location.reload();
+                        } else {
+                            alert(data.message || "Registration failed!");
+                        }
+                    } catch (err) {
+                        console.error("Bağlantı hatası:", err);
+                        alert("An error occurred connecting to the server.");
+                    }
                 });
-                const data = await res.json();
-                
-                if (res.ok) {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('username', name);
-                    localStorage.setItem('role', data.role);
-                    window.location.href = '/dashboard.html';
-                } else {
-                    alertBox.className = 'alert error';
-                    alertBox.textContent = data.message;
-                }
-            } catch (err) {
-                alertBox.className = 'alert error';
-                alertBox.textContent = "An error occurred.";
+            }
+
+            // --- LOGIN ---
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const name = document.getElementById('logName').value;
+                    const password = document.getElementById('logPassword').value;
+                    const rememberMe = document.getElementById('rememberMe').checked; 
+                    const alertBox = document.getElementById('loginAlert');
+
+                    try {
+                        const res = await fetch('/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name, password, rememberMe })
+                        });
+                        const data = await res.json();
+                        
+                        if (res.ok) {
+                            localStorage.setItem('token', data.token);
+                            localStorage.setItem('username', name);
+                            localStorage.setItem('role', data.role);
+                            window.location.href = '/dashboard.html';
+                        } else {
+                            alertBox.className = 'alert error';
+                            alertBox.textContent = data.message;
+                        }
+                    } catch (err) {
+                        alertBox.className = 'alert error';
+                        alertBox.textContent = "An error occurred.";
+                    }
+                });
             }
         });
     </script>
