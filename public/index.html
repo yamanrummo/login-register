@@ -265,14 +265,12 @@
             }
         }
 
-   // Register Handler
+  // Register Handler
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('regName').value;
     const email = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
-    
-    const alertBox = document.getElementById('registerAlert');
 
     try {
         const res = await fetch('/register', {
@@ -282,40 +280,19 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
         });
         const data = await res.json();
         
-        if (alertBox) {
-            alertBox.style.display = 'block';
-            alertBox.style.padding = '10px';
-            alertBox.style.borderRadius = '8px';
-            alertBox.style.marginBottom = '15px';
-            if (res.ok) {
-                alertBox.style.color = '#16a34a';
-                alertBox.style.backgroundColor = '#f0fdf4';
-                alertBox.textContent = "Registration successful! Redirecting to login...";
-                
-                // Formu temizle
-                document.getElementById('registerForm').reset();
-                
-                // 2 saniye bekleyip giriş ekranına yönlendir
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
-            } else {
-                alertBox.style.color = '#dc2626';
-                alertBox.style.backgroundColor = '#fef2f2';
-                alertBox.textContent = data.message;
-            }
+        if (res.ok) {
+            // Tarayıcının kendi garanti başarı bildirimi
+            alert("Registration successful! You can now log in.");
+            
+            // Formu temizle ve sayfayı yenile (Giriş ekranına dön)
+            document.getElementById('registerForm').reset();
+            window.location.reload();
         } else {
-            alert(data.message);
+            // Sunucudan gelen hata mesajı (Örn: Bu mail zaten kayıtlı)
+            alert(data.message || "An error occurred during registration.");
         }
     } catch (err) {
-        if (alertBox) {
-            alertBox.style.display = 'block';
-            alertBox.style.color = '#dc2626';
-            alertBox.style.backgroundColor = '#fef2f2';
-            alertBox.textContent = "An error occurred connecting to the server.";
-        } else {
-            alert("An error occurred connecting to the server.");
-        }
+        alert("An error occurred connecting to the server.");
     }
 });
 
