@@ -29,16 +29,22 @@ exports.register = async (req, res) => {
     });
     await newUser.save();
 
-    const mailOptions = {
-      from: 'yamanramo2@gmail.com',
-      to: email,
-      subject: 'Success Register',
-      text: `Hello ${name},\n\nYour account has been successfully registered using ${email}!`
-    };
+    // Mail gönderme kısmını geçici olarak try-catch içine alalım ki mail gitmese bile kayıt patlamasın
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Success Register',
+        text: `Hello ${name},\n\nYour account has been successfully registered using ${email}!`
+      };
+      await transporter.sendMail(mailOptions);
+    } catch (mailErr) {
+      console.error("Mail gönderme hatası (Kayıt silinmedi ama mail gidemedi):", mailErr.message);
+    }
 
-    await transporter.sendMail(mailOptions);
-    res.status(201).json({ message: "User registered & success email sent!" });
+    res.status(201).json({ message: "User registered successfully!" });
   } catch (error) {
+    console.error("Kayıt olma hatası:", error.message);
     res.status(400).json({ message: error.message });
   }
 };
