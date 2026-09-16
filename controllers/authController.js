@@ -27,9 +27,15 @@ exports.register = async (req, res) => {
       password: hashedPassword,
       role: role || 'user'
     });
+    
+    // 1. Kullanıcıyı veritabanına kaydet
     await newUser.save();
 
-    // Mail gönderme kısmını geçici olarak try-catch içine alalım ki mail gitmese bile kayıt patlamasın
+    // 2. ÇÖZÜM: E-posta atmasını beklemeden HEMEN ön yüze başarı cevabını dönüyoruz!
+    // Bu sayede arayüz donmayacak ve anında yeşil uyarı çıkacak.
+    res.status(201).json({ message: "User registered successfully!" });
+
+    // 3. E-posta gönderme işlemi arka planda devam etsin (frontend'i bekletmesin)
     try {
       const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -37,15 +43,22 @@ exports.register = async (req, res) => {
         subject: 'Success Register',
         text: `Hello ${name},\n\nYour account has been successfully registered using ${email}!`
       };
-      await transporter.sendMail(mailOptions);
+      
+      // Başında 'await' yok, arka planda dener, hata verirse sunucuyu çökertmeden konsola yazar.
+      transporter.sendMail(mailOptions).catch(err => {
+          console.error("Arka plan mail gönderme hatası:", err.message);
+      });
+      
     } catch (mailErr) {
-      console.error("Mail gönderme hatası (Kayıt silinmedi ama mail gidemedi):", mailErr.message);
+      console.error("Mail hazırlama hatası:", mailErr.message);
     }
 
-    res.status(201).json({ message: "User registered successfully!" });
   } catch (error) {
     console.error("Kayıt olma hatası:", error.message);
-    res.status(400).json({ message: error.message });
+    // Hata varsa ön yüze hemen hata mesajını dön
+    if (!res.headersSent) {
+        res.status(400).json({ message: error.message });
+    }
   }
 };
 
