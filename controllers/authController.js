@@ -113,22 +113,21 @@ exports.forgotPassword = async (req, res) => {
     user.resetPasswordExpires = Date.now() + 3600000; // 1 saat
     await user.save();
 
-    // 1. ÇÖZÜM: E-posta atmayı beklemeden HEMEN ön yüze başarı mesajını dönüyoruz!
-    res.json({ message: "If an account exists, a reset link has been sent to your email!" });
-
-    // 2. ÇÖZÜM: Localhost yerine otomatik olarak Render'daki sitenin gerçek adresini alıyoruz
     const resetUrl = `${req.protocol}://${req.get('host')}/reset-password.html?token=${token}`;
-    
+
+    // Mail göndermeyi deneriz, takılmaması için asenkron bırakırız
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
       subject: 'Password Reset Request',
-      text: `You requested a password reset. Click the link below to reset your password:\n\n${resetUrl}\n\nIf you didn't request this, please ignore this email.`
+      text: `You requested a password reset. Click the link below to reset your password:\n\n${resetUrl}`
     };
+    transporter.sendMail(mailOptions).catch(err => console.log("Mail gönderilemedi (Normal: Render port kısıtı)"));
 
-    // 3. Arka planda maili atıyor, başından 'await' kaldırdık ki tarayıcıyı kilitmesin
-    transporter.sendMail(mailOptions).catch(err => {
-        console.error("Şifre sıfırlama maili gönderme hatası:", err.message);
+    // Canlı test için linki doğrudan yanıt içinde dönüyoruz
+    res.json({ 
+      message: "Password reset link generated successfully!", 
+      resetUrl: resetUrl // Ekranda test edebilmen için linki gönderiyoruz
     });
 
   } catch (error) {
